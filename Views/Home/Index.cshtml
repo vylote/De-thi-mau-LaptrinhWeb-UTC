@@ -1,0 +1,15 @@
+﻿@model IEnumerable<HoTen_MaSV.Models.HangHoa>
+
+<div class="content">
+    <div id="main-content-ajax">
+        @await Html.PartialAsync("_ProductListPartial", Model)
+
+        <div class="content_bottom">...</div>
+        <div class="section group">...</div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/Script/js/custom.js"></script>
+}

@@ -1,0 +1,49 @@
+﻿@model IEnumerable<HoTen_MaSV.Models.HangHoa>
+
+<div class="content_top">
+    <div class="heading">
+        <h3>HO TEN SINH VIEN</h3>
+    </div>
+    <div class="see">
+        <p><a href="#">See all Products</a></p>
+    </div>
+    <div class="clear"></div>
+</div>
+
+<div class="section group" id="product-grid">
+    @foreach (var item in Model)
+    {
+        <div class="grid_1_of_4 images_1_of_4">
+            <a href="preview.html"><img src="~/Content/images/@item.Anh" alt="" /></a>
+            <h2>@item.TenHang</h2>
+            <div class="price-details">
+                <div class="price-number">
+                    <p><span class="rupees">@string.Format("${0:N2}", item.Gia)</span></p>
+                </div>
+                <div class="add-cart"><h4><a href="preview.html">Add to Cart</a></h4></div>
+                <div class="clear"></div>
+            </div>
+        </div>
+    }
+</div>
+
+@{
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    int? currentMaLoai = ViewBag.CurrentMaLoai;
+    string currentSearch = ViewBag.CurrentSearch;
+}
+
+<div class="paging-area" style="text-align:center; padding: 20px;">
+    @for (int i = 1; i <= totalPages; i++)
+    {
+        <a href="#" 
+           class="page-link @(i == currentPage ? "active" : "")" 
+           data-page="@i" 
+           data-maloai="@currentMaLoai" 
+           data-search="@currentSearch"
+           style="margin: 0 5px; padding: 5px 10px; border: 1px solid #ccc; text-decoration: none;">
+            @i
+        </a>
+    }
+</div>

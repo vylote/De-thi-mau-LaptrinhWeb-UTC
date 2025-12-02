@@ -1,0 +1,60 @@
+﻿@model HoTen_MaSV.Models.HangHoa
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Thêm Hàng Hóa Mới";
+    // Giả định Họ tên sinh viên là Nguyễn Văn An
+    string hoTen = "Nguyễn Văn An";
+}
+
+<div class="content">
+    <div class="content_top">
+        <div class="heading">
+            <h3>@hoTen - @ViewData["Title"]</h3>
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="section group">
+        <div class="form-container" style="padding: 20px;">
+            <form asp-action="Create" method="post">
+
+                <div style="margin-bottom: 10px;">
+                    <label asp-for="MaLoai">MaLoai</label><br />
+                    <span asp-validation-for="MaLoai" class="text-danger"></span>
+                    <select asp-for="MaLoai" style="width: 200px;">
+                        <option value="">-- Chọn Loại Hàng --</option>
+                        @foreach (var loai in (SelectList)ViewBag.MaLoai)
+                        {
+                            <option value="@loai.Value" selected="@loai.Selected">@loai.Text</option>
+                        }
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <label asp-for="TenHang">TenHang</label><br />
+                    <span asp-validation-for="TenHang" class="text-danger"></span>
+                    <input asp-for="TenHang" type="text" style="width: 200px;" />
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <label asp-for="Gia">Gia</label><br />
+                    <span asp-validation-for="Gia" class="text-danger"></span>
+                    <input asp-for="Gia" type="number" style="width: 200px;" />
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label asp-for="Anh">Anh</label><br />
+                    <span asp-validation-for="Anh" class="text-danger"></span>
+                    <input asp-for="Anh" type="text" style="width: 200px;" />
+                </div>
+
+                <div>
+                    <input type="submit" value="Create" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

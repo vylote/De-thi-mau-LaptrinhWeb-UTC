@@ -1,0 +1,17 @@
+﻿
+<div class="header">
+    <div class="header_top">
+    </div>
+    <div class="header_bottom">
+        <div class="menu">
+            @await Component.InvokeAsync("LoaiHangMenu")
+        </div>
+        <div class="search_box">
+            <form id="searchForm">
+                <input type="text" id="searchInput" name="search" value="Search" onfocus="this.value = '';" onblur="if (this.value == '') {this.value = 'Search';}">
+                <input type="button" id="searchButton" value="">
+            </form>
+        </div>
+        <div class="clear"></div>
+    </div>
+</div>

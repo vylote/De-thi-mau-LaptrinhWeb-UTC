@@ -1,0 +1,14 @@
+﻿@model IEnumerable<HoTen_MaSV.Models.LoaiHang>
+@{
+    string hoTen = "HO TEN SINH VIEN";
+}
+
+<ul>
+    <li class="active"><a href="@Url.Action("Index", "Home")">@hoTen</a></li>
+    @foreach (var loai in Model)
+    {
+        <li><a href="#" class="filter-loaihang" data-maloai="@loai.MaLoai">@loai.TenLoai</a></li>
+    }
+    <li><a href="@Url.Action("Create", "Home")">Thêm Hàng Hóa Mới</a></li>
+    <div class="clear"></div>
+</ul>
