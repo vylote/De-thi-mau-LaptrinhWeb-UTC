@@ -1,0 +1,67 @@
+﻿@model HoTen_MaSV.Models.HangHoa
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Thêm Hàng Hóa Mới";
+    // Giả định Họ tên sinh viên được đặt là Nguyễn Văn An
+    string hoTen = "Nguyễn Văn An";
+}
+
+<div class="content">
+    <div class="content_top">
+        <div class="heading">
+            <h3>@hoTen - @ViewData["Title"]</h3>
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div class="section group">
+        <div class="form-container" style="padding: 20px;">
+
+            <form asp-action="Create1" method="post">
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div style="margin-bottom: 10px;">
+                    <label asp-for="MaLoai">MaLoai</label><br />
+                    <select asp-for="MaLoai" style="width: 200px;" asp-items="ViewBag.MaLoai">
+                        <option value="">-- Chọn Loại Hàng --</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <label asp-for="TenHang">TenHang</label><br />
+                    <input asp-for="TenHang" type="text" style="width: 200px;" />
+                    <span asp-validation-for="TenHang" class="text-danger"></span>
+                </div>
+
+                <div style="margin-bottom: 10px;">
+                    <label asp-for="Gia">Gia</label><br />
+                    <input asp-for="Gia" type="number" style="width: 200px;" />
+                    <span asp-validation-for="Gia" class="text-danger"></span>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label asp-for="Anh">Anh</label><br />
+                    <input asp-for="Anh" type="text" style="width: 200px;" />
+                    <span asp-validation-for="Anh" class="text-danger"></span>
+                </div>
+
+                <div>
+                    <input type="submit" value="Create" />
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div>
+        <a asp-action="Index">Back to List</a>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

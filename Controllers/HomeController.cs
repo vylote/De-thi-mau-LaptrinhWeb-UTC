@@ -93,7 +93,7 @@ public class HomeController : Controller
     }
 
     // Tối ưu hóa: Load LoaiHang và tạo SelectList trước
-    public async Task<IActionResult> Create()
+    public async Task<IActionResult> Create1()
     {
         // Tối ưu: Dùng SelectList trực tiếp thay vì gán List và tạo SelectList sau
         ViewBag.MaLoai = new SelectList(await _context.LoaiHangs.ToListAsync(), "MaLoai", "TenLoai");
@@ -103,7 +103,7 @@ public class HomeController : Controller
     // Action POST Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("MaLoai,TenHang,Gia,Anh")] HangHoa hangHoa)
+    public async Task<IActionResult> Create1([Bind("MaLoai,TenHang,Gia,Anh")] HangHoa hangHoa)
     {
         // 💥 GIỮ NGUYÊN: Giải pháp khắc phục lỗi Model Binding đã thành công
         ModelState.Remove("MaLoaiNavigation");
@@ -119,6 +119,112 @@ public class HomeController : Controller
 
         // Tối ưu: Trả về SelectList khi thất bại
         ViewBag.MaLoai = new SelectList(await _context.LoaiHangs.ToListAsync(), "MaLoai", "TenLoai", hangHoa.MaLoai);
+        return View(hangHoa);
+    }
+    [HttpGet]
+    public async Task<IActionResult> Delete(int? id) // Cần nhận tham số ID
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var hangHoa = await _context.HangHoas
+            .FirstOrDefaultAsync(m => m.MaHang == id);
+
+        if (hangHoa == null)
+        {
+            return NotFound();
+        }
+
+        // Tải thông tin Loại Hàng nếu cần hiển thị trong View (MaLoaiNavigation)
+        // Nếu bạn muốn hiển thị TenLoai, bạn cần Include nó ở đây
+        // var hangHoa = await _context.HangHoas.Include(h => h.MaLoaiNavigation)...
+
+        return View(hangHoa); // Trả về View xác nhận Delete.cshtml
+    }
+
+    // 2. ACTION POST: Thực hiện xóa sau khi xác nhận
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int maHang) // Nhận ID từ input hidden
+    {
+        var hangHoa = await _context.HangHoas.FindAsync(maHang);
+
+        if (hangHoa != null)
+        {
+            _context.HangHoas.Remove(hangHoa);
+            await _context.SaveChangesAsync();
+        }
+
+        // Tối ưu: Nếu muốn giữ lại trang hiện tại (lọc/phân trang), bạn cần giữ lại tham số
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Edit(int? id)
+    {
+        if (id == null)
+        {
+            return NotFound();
+        }
+
+        var hangHoa = await _context.HangHoas
+            .FirstOrDefaultAsync(m => m.MaHang == id);
+
+        if (hangHoa == null)
+        {
+            return NotFound();
+        }
+
+        ViewBag.MaLoai = new SelectList(await _context.LoaiHangs.ToListAsync(), "MaLoai", "TenLoai");
+        return View(hangHoa);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    // 💥 SỬA LỖI QUAN TRỌNG:
+    // 1. Dùng [Bind] để Model Binder tự động ánh xạ dữ liệu form gửi lên vào đối tượng hangHoa.
+    // 2. Không cần truy cập Request.Form thủ công nữa.
+    public async Task<IActionResult> Edit(int id, [Bind("MaHang,MaLoai,TenHang,Gia,Anh")] HangHoa hangHoa)
+    {
+        // Kiểm tra ID có khớp không (Thường là kiểm tra đầu tiên)
+        if (id != hangHoa.MaHang)
+        {
+            return NotFound();
+        }
+
+        // 💥 GIỮ NGUYÊN: Giải pháp khắc phục lỗi Model Binding
+        ModelState.Remove("MaLoaiNavigation");
+
+        // Validation tự động sẽ chạy dựa trên Data Annotations trong Models/HangHoa.cs
+        if (ModelState.IsValid)
+        {
+            try
+            {
+                // Update đối tượng hangHoa đã được ánh xạ từ form
+                _context.Update(hangHoa);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Logic kiểm tra lỗi đồng thời
+                if (!_context.HangHoas.Any(e => e.MaHang == hangHoa.MaHang))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        // 💥 BỔ SUNG: Nếu validation thất bại, cần cung cấp lại ViewBag cho Dropdown
+        ViewBag.MaLoai = new SelectList(await _context.LoaiHangs.ToListAsync(), "MaLoai", "TenLoai", hangHoa.MaLoai);
+
+        // Trả về View với dữ liệu lỗi để hiển thị validation message
         return View(hangHoa);
     }
 }

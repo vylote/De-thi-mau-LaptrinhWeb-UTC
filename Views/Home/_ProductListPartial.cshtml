@@ -21,6 +21,8 @@
                     <p><span class="rupees">@string.Format("${0:N2}", item.Gia)</span></p>
                 </div>
                 <div class="add-cart"><h4><a href="preview.html">Add to Cart</a></h4></div>
+                <div><a href="@Url.Action("Delete", "Home", new { id = item.MaHang })">Xoa</a></div>
+                <div><a href="@Url.Action("Edit", "Home", new { id = item.MaHang })">Sua</a></div>
                 <div class="clear"></div>
             </div>
         </div>
