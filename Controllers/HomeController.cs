@@ -4,6 +4,7 @@ using HoTen_MaSV.Models;
 using Microsoft.EntityFrameworkCore;
 using HoTen_MaSV.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 
 namespace HoTen_MaSV.Controllers;
 
@@ -20,13 +21,49 @@ public class HomeController : Controller
     // Phương thức chung để xử lý truy vấn sản phẩm (tránh lặp lại code)
     private IQueryable<HangHoa> GetBaseProductQuery()
     {
-        return _context.HangHoas.Where(h => h.Gia > 100);
+        return _context.HangHoas;
+    }
+
+    private List<SelectListItem> GetPriceFilterOptions(string currentValue = "all")
+    {
+        return new List<SelectListItem>
+        {
+            new SelectListItem { Value = "all", Text = "Tất cả giá", Selected = currentValue == "all" },
+            new SelectListItem { Value = "gt100", Text = "Giá > $100", Selected = currentValue == "gt100" },
+            new SelectListItem { Value = "eq100", Text = "Giá = $100", Selected = currentValue == "eq100" },
+            new SelectListItem { Value = "lt100", Text = "Giá < $100", Selected = currentValue == "lt100" }
+        };
+    }
+
+    private IQueryable<HangHoa> ApplyPriceFilter(IQueryable<HangHoa> query, string filter)
+    {
+        switch (filter)
+        {
+            case "gt100":
+                // Giá > 100
+                query = query.Where(h => h.Gia > 100);
+                break;
+            case "eq100":
+                // Giá = 100
+                query = query.Where(h => h.Gia == 100);
+                break;
+            case "lt100":
+                // Giá < 100
+                query = query.Where(h => h.Gia < 100);
+                break;
+            case "all":
+            default:
+                // Theo yêu cầu đề bài: Gia >= 100 (bao gồm cả 100)
+                query = query.Where(h => h.Gia >= 100);
+                break;
+        }
+        return query;
     }
 
     // Tối ưu hóa: Gọi hàm chung để lấy query cơ sở
-    public async Task<IActionResult> Index(int page = 1)
+    public async Task<IActionResult> Index(int page = 1, string priceFilter = "all")
     {
-        var allProducts = GetBaseProductQuery();
+        var allProducts = ApplyPriceFilter(GetBaseProductQuery(), priceFilter);
 
         // Tối ưu: Tính toán và lấy dữ liệu trong 1 khối
         int totalItems = await allProducts.CountAsync();
@@ -39,16 +76,18 @@ public class HomeController : Controller
 
         ViewBag.CurrentPage = page;
         ViewBag.TotalPages = totalPages;
-        ViewBag.IsSearchOrFilter = false;
 
+        
+        ViewBag.PriceFilterOptions = GetPriceFilterOptions(priceFilter);
+        ViewBag.CurrentPriceFilter = priceFilter;
         return View(hangHoa);
     }
 
     [HttpGet]
     // Tối ưu hóa: Dùng IQueryable để xây dựng truy vấn trước khi gọi DB
-    public async Task<IActionResult> GetHangHoaByLoai(int? maLoai, string search = "", int page = 1)
+    public async Task<IActionResult> GetHangHoaByLoai(int? maLoai, string search = "", string priceFilter="all", int page = 1)
     {
-        var productsQuery = GetBaseProductQuery();
+        var productsQuery = ApplyPriceFilter(GetBaseProductQuery(), priceFilter);
 
         // 1. Lọc theo Loại Hàng
         if (maLoai.HasValue)
@@ -76,8 +115,17 @@ public class HomeController : Controller
         ViewBag.TotalPages = totalPages;
         ViewBag.CurrentMaLoai = maLoai;
         ViewBag.CurrentSearch = search;
-        ViewBag.IsSearchOrFilter = true;
 
+        var priceFilters = new List<SelectListItem>
+        {
+            new SelectListItem { Value = "all", Text = "Tất cả giá", Selected = true },
+            new SelectListItem { Value = "gt100", Text = "Giá > $100" },
+            new SelectListItem { Value = "eq100", Text = "Giá = $100" },
+            new SelectListItem { Value = "lt100", Text = "Giá < $100" }
+        };
+
+        ViewBag.PriceFilterOptions = GetPriceFilterOptions(priceFilter);
+        ViewBag.CurrentPriceFilter = priceFilter;
         return PartialView("_ProductListPartial", hangHoa);
     }
 
@@ -93,7 +141,7 @@ public class HomeController : Controller
     }
 
     // Tối ưu hóa: Load LoaiHang và tạo SelectList trước
-    public async Task<IActionResult> Create1()
+    public async Task<IActionResult> Create()
     {
         // Tối ưu: Dùng SelectList trực tiếp thay vì gán List và tạo SelectList sau
         ViewBag.MaLoai = new SelectList(await _context.LoaiHangs.ToListAsync(), "MaLoai", "TenLoai");
@@ -103,7 +151,7 @@ public class HomeController : Controller
     // Action POST Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create1([Bind("MaLoai,TenHang,Gia,Anh")] HangHoa hangHoa)
+    public async Task<IActionResult> Create([Bind("MaLoai,TenHang,Gia,Anh")] HangHoa hangHoa)
     {
         // 💥 GIỮ NGUYÊN: Giải pháp khắc phục lỗi Model Binding đã thành công
         ModelState.Remove("MaLoaiNavigation");

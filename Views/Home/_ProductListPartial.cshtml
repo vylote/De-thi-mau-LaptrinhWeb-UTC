@@ -34,6 +34,7 @@
     int totalPages = ViewBag.TotalPages;
     int? currentMaLoai = ViewBag.CurrentMaLoai;
     string currentSearch = ViewBag.CurrentSearch;
+    string currentPriceFilter = ViewBag.CurrentPriceFilter;
 }
 
 <div class="paging-area" style="text-align:center; padding: 20px;">
@@ -45,6 +46,7 @@
            data-page="@i" 
            data-maloai="@currentMaLoai" 
            data-search="@currentSearch"
+           data-priceRange="@currentPriceFilter"
            style="margin: 0 5px; padding: 5px 10px; border: 1px solid #ccc; text-decoration: none;
                   @(isActive ? "background-color: #f0f0f0; font-weight: bold; border-color: #333;" : "")">
             @i

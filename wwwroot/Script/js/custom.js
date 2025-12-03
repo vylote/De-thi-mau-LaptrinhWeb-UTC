@@ -1,4 +1,5 @@
 ﻿$(document).ready(function () {
+
     // =======================================================================
     // I. KHAI BÁO CỐ ĐỊNH & HÀM TIỆN ÍCH (Utilities)
     // =======================================================================
@@ -6,6 +7,18 @@
     const DEFAULT_SEARCH_VALUE = 'Search';
     const SEARCH_INPUT = $('#searchInput');
     const SEARCH_BUTTON = $('#searchButton');
+    const PRICE_FILTER = $('#priceFilterDropdown'); // Dropdown lọc giá
+
+    /**
+     * @description Lấy giá trị lọc giá hiện tại từ dropdown.
+     * @returns {string} Mã lọc giá ('all', 'gt100', etc.).
+     */
+    const getSelectedPriceRange = () => {
+        // Lấy giá trị (value) của option đang được chọn.
+        const selectedOption = PRICE_FILTER.val();
+        // Trả về giá trị hoặc null (mặc dù giá trị mặc định nên là 'all')
+        return selectedOption || null;
+    }
 
     /**
      * @description Lấy giá trị tìm kiếm hiện tại từ input, xử lý giá trị mặc định.
@@ -13,16 +26,14 @@
      */
     const getSearchQuery = () => {
         const val = SEARCH_INPUT.val();
-        // Trả về rỗng nếu giá trị là 'Search' hoặc null, nếu không trả về giá trị đã trim.
         return (val === DEFAULT_SEARCH_VALUE || !val) ? '' : val.trim();
     };
 
     /**
      * @description Lấy Mã Loại (MaLoai) đang được chọn trên thanh menu (NAV).
-     * @returns {number | null} Mã loại hiện tại hoặc null nếu đang ở trang chủ/không chọn gì.
+     * @returns {number | null} Mã loại hiện tại hoặc null nếu không có mục loại hàng nào active.
      */
     const getCurrentMaLoai = () => {
-        // Tìm thẻ <a> có class 'filter-loaihang' nằm trong thẻ <li> có class 'active'.
         const activeItem = $('.menu ul li.active a.filter-loaihang');
         return activeItem.length ? activeItem.data('maloai') : null;
     };
@@ -37,10 +48,10 @@
      * @param {number | null} maLoai - Mã loại hàng để lọc.
      * @param {string} search - Từ khóa tìm kiếm.
      * @param {number} [page=1] - Trang hiện tại cần tải.
+     * @param {string} priceRange - Mã lọc giá ('all', 'gt100', etc.).
      */
-    function loadProducts(maLoai, search, page = 1) {
+    function loadProducts(maLoai, search, page = 1, priceRange = 'all') {
 
-        // Đảm bảo maLoai là null nếu không có giá trị (phù hợp với tham số Controller)
         const maLoaiClean = maLoai || null;
 
         $.ajax({
@@ -49,14 +60,11 @@
             data: {
                 maLoai: maLoaiClean,
                 search: search,
-                page: page
+                page: page,
+                priceFilter: priceRange // 💥 ĐÃ SỬA: Dùng tên tham số Controller
             },
             success: function (data) {
-                // Thay thế nội dung chính (Partial View)
                 $('#main-content-ajax').html(data);
-
-                // LƯU Ý: Trạng thái Active của menu phải được xử lý trước khi gọi loadProducts
-                // hoặc sau khi AJAX thành công nếu cần thay đổi ngoài #main-content-ajax.
             },
             error: function (xhr, status, error) {
                 console.error("AJAX Error: " + status + error);
@@ -70,42 +78,45 @@
     // =======================================================================
 
     /**
-     * @description Xử lý logic Tìm kiếm (cả click nút và nhấn Enter).
-     * @param {Event} e - Đối tượng sự kiện.
+     * @description Hàm tổng hợp logic và tham số để kích hoạt loadProducts.
      */
-    const handleSearch = (e) => {
-        e.preventDefault();
-
+    const handleFilterLoad = (page = 1) => {
         const search = getSearchQuery();
-        const maLoai = getCurrentMaLoai(); // Duy trì trạng thái lọc hiện tại
+        const maLoai = getCurrentMaLoai();
+        const priceRange = getSelectedPriceRange(); // Lấy giá trị lọc giá
 
-        // Load sản phẩm (luôn reset về trang 1 khi thực hiện tìm kiếm/lọc mới)
-        loadProducts(maLoai, search, 1);
+        // Load sản phẩm với các tham số hiện tại (page=1 nếu là lọc mới)
+        loadProducts(maLoai, search, page, priceRange);
     };
 
-    // 2.1. Bắt sự kiện click nút tìm kiếm
-    SEARCH_BUTTON.on('click', handleSearch);
-
-    // 2.2. Bắt sự kiện nhấn ENTER trong input tìm kiếm
-    SEARCH_INPUT.on('keypress', function (e) {
-        if (e.which === 13) { // KeyCode 13 là Enter
-            handleSearch(e); // Gọi hàm xử lý tìm kiếm
-        }
-    });
-
-    // 1. Logic Lọc theo Loại Hàng (Ủy quyền sự kiện cho các link menu động)
+    // --- 1. Logic Lọc theo Loại Hàng (Ủy quyền sự kiện) ---
     $(document).on('click', '.filter-loaihang', function (e) {
         e.preventDefault();
 
-        // 💥 Cập nhật trạng thái Active trên Menu (Đảm bảo chỉ có 1 mục active)
+        // Cập nhật trạng thái Active trên Menu
         $('.menu ul li').removeClass('active');
         $(this).closest('li').addClass('active');
 
-        const maLoai = $(this).data('maloai');
-        const search = getSearchQuery();
-
         // Load sản phẩm (luôn bắt đầu từ trang 1 khi lọc mới)
-        loadProducts(maLoai, search, 1);
+        handleFilterLoad(1);
+    });
+
+    // --- 2. Logic Tìm Kiếm (Xử lý Click và Enter) ---
+    // Bắt sự kiện click nút tìm kiếm
+    SEARCH_BUTTON.on('click', handleFilterLoad);
+
+    // Bắt sự kiện nhấn ENTER trong input tìm kiếm
+    SEARCH_INPUT.on('keypress', function (e) {
+        if (e.which === 13) { // KeyCode 13 là Enter
+            e.preventDefault();
+            handleFilterLoad(1); // Luôn bắt đầu từ trang 1
+        }
+    });
+
+    // --- 3. Logic Lọc theo Giá (Bắt sự kiện change) ---
+    // 💥 BỔ SUNG: Bắt sự kiện thay đổi giá trị của dropdown
+    PRICE_FILTER.on('change', function () {
+        handleFilterLoad(1); // Luôn bắt đầu từ trang 1 khi thay đổi bộ lọc
     });
 
 
@@ -113,19 +124,18 @@
     // IV. XỬ LÝ PHÂN TRANG (PAGINATION)
     // =======================================================================
 
-    // 3. Logic Phân Trang (Ủy quyền sự kiện cho các nút phân trang động)
+    // 4. Logic Phân Trang (Ủy quyền sự kiện cho các nút phân trang động)
     $(document).on('click', '.page-link', function (e) {
         e.preventDefault();
 
-        // Lấy các tham số lọc/tìm kiếm hiện tại từ data của nút phân trang
+        // Lấy các tham số lọc/tìm kiếm được lưu trong data của nút phân trang
         const page = $(this).data('page');
         const maLoai = $(this).data('maloai');
         const search = $(this).data('search');
+        // 💥 ĐÃ SỬA: Lấy priceRange từ data của nút phân trang
+        const priceRange = $(this).data('pricerange');
 
         // Load sản phẩm với trang mới
-        loadProducts(maLoai, search, page);
-
-        // LƯU Ý: Trạng thái Active của nút phân trang được xử lý trong Razor 
-        // (_ProductListPartial.cshtml) sau khi AJAX thành công.
+        loadProducts(maLoai, search, page, priceRange);
     });
 });

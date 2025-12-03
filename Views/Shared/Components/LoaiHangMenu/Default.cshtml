@@ -22,7 +22,18 @@
         <li><a href="#" class="filter-loaihang" data-maloai="@loai.MaLoai">@loai.TenLoai</a></li>
     }
     <li class="@(isCreateActive ? "active" : "")">
-        <a href="@Url.Action("Create1", "Home")">Thêm Hàng Hóa Mới</a>
+        <a href="@Url.Action("Create", "Home")">Thêm Hàng Hóa Mới</a>
+    </li>
+    <li>
+        <select name="priceFilter" id="priceFilterDropdown" class="form-control">
+            @if (ViewBag.PriceFilterOptions is IEnumerable<SelectListItem> priceOptions)
+            {
+                foreach (var item in priceOptions)
+                {
+                    <option value="@item.Value" selected="@item.Selected">@item.Text</option>
+                }
+            }
+        </select>
     </li>
     <div class="clear"></div>
 </ul>

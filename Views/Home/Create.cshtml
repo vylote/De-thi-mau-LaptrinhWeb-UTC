@@ -24,12 +24,15 @@
                 <div style="margin-bottom: 10px;">
                     <label asp-for="MaLoai">MaLoai</label><br />
                     <span asp-validation-for="MaLoai" class="text-danger"></span>
-                    <select asp-for="MaLoai" style="width: 200px;">
+                    @* <select asp-for="MaLoai" style="width: 200px;">
                         <option value="">-- Chọn Loại Hàng --</option>
                         @foreach (var loai in (SelectList)ViewBag.MaLoai)
                         {
                             <option value="@loai.Value" selected="@loai.Selected">@loai.Text</option>
                         }
+                    </select> *@
+                    <select asp-for="MaLoai" style="width: 200px;" asp-items="ViewBag.MaLoai">
+                        <option value="">-- Chọn Loại Hàng --</option>
                     </select>
                 </div>
 
