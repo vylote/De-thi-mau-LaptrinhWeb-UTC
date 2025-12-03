@@ -1,14 +1,28 @@
 ﻿@model IEnumerable<HoTen_MaSV.Models.LoaiHang>
 @{
     string hoTen = "HO TEN SINH VIEN";
+    // Lấy thông tin Controller và Action hiện tại
+    string currentController = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
+    string currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
 }
 
 <ul>
-    <li class="active"><a href="@Url.Action("Index", "Home")">@hoTen</a></li>
+    @{
+        // Xác định xem mục "Home" (Index) có nên active không
+        bool isHomeActive = currentController == "Home" && currentAction == "Index";
+
+        // Xác định xem mục "Create" có nên active không
+        bool isCreateActive = currentController == "Home" && currentAction == "Create";
+    }
+    <li class="@(isHomeActive ? "active" : "")">
+        <a href="@Url.Action("Index", "Home")">@hoTen</a>
+    </li>
     @foreach (var loai in Model)
     {
         <li><a href="#" class="filter-loaihang" data-maloai="@loai.MaLoai">@loai.TenLoai</a></li>
     }
-    <li><a href="@Url.Action("Create", "Home")">Thêm Hàng Hóa Mới</a></li>
+    <li class="@(isCreateActive ? "active" : "")">
+        <a href="@Url.Action("Create", "Home")">Thêm Hàng Hóa Mới</a>
+    </li>
     <div class="clear"></div>
 </ul>

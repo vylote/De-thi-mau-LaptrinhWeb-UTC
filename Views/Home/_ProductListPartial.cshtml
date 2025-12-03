@@ -37,12 +37,14 @@
 <div class="paging-area" style="text-align:center; padding: 20px;">
     @for (int i = 1; i <= totalPages; i++)
     {
+        bool isActive = (i == currentPage); // Kiểm tra trang hiện tại
         <a href="#" 
-           class="page-link @(i == currentPage ? "active" : "")" 
+           class="page-link @(isActive ? "active-page" : "")" 
            data-page="@i" 
            data-maloai="@currentMaLoai" 
            data-search="@currentSearch"
-           style="margin: 0 5px; padding: 5px 10px; border: 1px solid #ccc; text-decoration: none;">
+           style="margin: 0 5px; padding: 5px 10px; border: 1px solid #ccc; text-decoration: none;
+                  @(isActive ? "background-color: #f0f0f0; font-weight: bold; border-color: #333;" : "")">
             @i
         </a>
     }
